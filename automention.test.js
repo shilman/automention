@@ -14,7 +14,8 @@ describe('automention', () => {
       issue,
       config: {
         bug: ['shilman'],
-        feature: ['ndelangen']
+        feature: ['ndelangen', 'tmeasday'],
+        whatever: ['shilman', 'igor-dv']
       },
       commentApi: {
         createComment: jest.fn(),
@@ -28,6 +29,16 @@ describe('automention', () => {
         debug: jest.fn()
       }
     };
+  });
+
+  it('handles multiple labels, uniquifying users and sorting them', async () => {
+    input.labels = ['bug', 'whatever', 'feature'];
+    input.existingComments = [];
+    await automention(input);
+    expect(input.commentApi.createComment).toHaveBeenCalledWith({
+      ...issue,
+      body: `Automention: Hey @igor-dv @ndelangen @shilman @tmeasday, you've been tagged! Can you give a hand here?`
+    });
   });
 
   describe('no automention comments', () => {
@@ -86,7 +97,7 @@ describe('automention', () => {
       expect(input.commentApi.updateComment).toHaveBeenCalledWith({
         ...issue,
         comment_id: 'existingId',
-        body: `Automention: Hey @ndelangen, you've been tagged! Can you give a hand here?`
+        body: `Automention: Hey @ndelangen @tmeasday, you've been tagged! Can you give a hand here?`
       });
     });
 
