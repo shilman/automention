@@ -21,7 +21,7 @@ Toolkit.run(async tools => {
     );
 
     // FIXME: support pagination
-    const existingComments = await github.issues.listComments({
+    const existingComments = await issues.listComments({
       ...issue,
       per_page: 100
     });
