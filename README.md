@@ -38,7 +38,7 @@ Install `Automention` in two easy steps:
 1. Add to your actions in `.github/main.workflow`
 2. Configure your notifications in `automention.yml`
 
-First, add automention to your github workflow `.github/main.workflow`.
+First, add `Automention` to your github workflow `.github/main.workflow`:
 
 ```
 action "Automention" {
@@ -46,17 +46,20 @@ action "Automention" {
   secrets = ["GITHUB_TOKEN"]
 }
 
-workflow "Automention PR" {
+workflow "Automention PRs" {
   on = "pull_request"
   resolves = "Automention"
 }
 
-# See full list of events below...
+workflow "Automention Issues" {
+  on = "issues"
+  resolves = "Automention"
+}
 ```
 
-For a full configuration, see this [example workflow](docs/example.workflow)
+This triggers `Automention` every time an issue or PR is modified in any way.
 
-By default, Automention will run but won't take any actions. I recommend adding it unconfigured first, then configuring it after you've seen it run. After you've pushed this change to your workflwo, trigger `Automention` by taking any of the actions you've set up in the workflow (e.g. create a new PR). You should be able to see the action run in your repo's `Actions` tab.
+By default, `Automention` will run but won't take any actions. I recommend adding it unconfigured first, then configuring it after you've seen it run. After you've pushed this change to your workflow, trigger `Automention` by taking any of the actions you've set up in the workflow (e.g. create a new PR). You should be able to see the action run in your repo's `Actions` tab.
 
 ## Configuration
 
@@ -67,7 +70,7 @@ label1: ['user1', 'user2']
 label2: ['user1']
 ```
 
-If a PR or issue is labeled with more than one label, `Automention` will mention the _union_ of all users, as you would expect.
+If a PR or issue is labeled with more than one label, `Automention` will mention the _union_ of all users, sorted alphabetically.
 
 ## Credits
 
