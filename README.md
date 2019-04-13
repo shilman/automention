@@ -1,6 +1,6 @@
 # Automention
 
-Automatically mention a user in an issue/PR based on github labels.
+Automatically mention users in an issue/PR based on github labels.
 
 > NOTE: Automention requires Github Actions to be enabled on your repo, and Actions is still in beta.
 
@@ -13,11 +13,11 @@ It's an easy install github action that `@mention`s one or more users based on t
 Consider [Storybook](https://github.com/storybooks/storybook), which has 50+ packages and 650+ contributors and the following `Automention` configuration:
 
 ```yml
-"app: angular": ["kroeder", "igor-dv"]
-"app: react-native": ["benoitdion"]
-"app: vue": ["backbone87"]
-"addon: a11y": ["CodeByAlex", "Armanio", "jsomsanith"]
-typescript: ["kroeder", "gaetanmasse", "ndelangen"]
+'app: angular': ['kroeder', 'igor-dv']
+'app: react-native': ['benoitdion']
+'app: vue': ['backbone87']
+'addon: a11y': ['CodeByAlex', 'Armanio', 'jsomsanith']
+typescript: ['kroeder', 'gaetanmasse', 'ndelangen']
 # ...
 ```
 
@@ -63,8 +63,8 @@ By default, Automention will run but won't take any actions. I recommend adding 
 Configuration is even easier, simply create a file `.github/automention.yml` with key value pairs corresponding to issue labels and list of users to notify:
 
 ```yml
-label1: ["user1", "user2"]
-label2: ["user1"]
+label1: ['user1', 'user2']
+label2: ['user1']
 ```
 
 If a PR or issue is labeled with more than one label, `Automention` will mention the _union_ of all users, as you would expect.
