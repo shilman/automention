@@ -5,16 +5,17 @@ Toolkit.run(async tools => {
   const {
     github: { issues },
     context: { issue },
-    log
+    log,
+    exit
   } = tools;
   log.info('Automention!');
 
-  const config = tools.config('automention.yml');
-  if (!config) {
-    tools.exit.failure('No automention.yml');
-  }
-
   try {
+    const config = tools.config('.github/automention.yml');
+    if (!config) {
+      throw new Error('No automention.yml');
+    }
+
     const labels = (await issues.listLabelsOnIssue(issue)).data.map(
       l => l.name
     );
@@ -34,9 +35,9 @@ Toolkit.run(async tools => {
       log
     });
 
-    tools.exit.success('We did it!');
+    exit.success('We did it!');
   } catch (err) {
     log.error(err.message);
-    tools.exit.failure(err.message);
+    exit.failure(err.message);
   }
 });
