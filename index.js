@@ -21,10 +21,10 @@ Toolkit.run(async tools => {
     );
 
     // FIXME: support pagination
-    const existingComments = await issues.listComments({
+    const existingComments = (await issues.listComments({
       ...issue,
       per_page: 100
-    });
+    })).data;
 
     await automention({
       issue,
