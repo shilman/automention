@@ -29,6 +29,8 @@ async function automention({
   }
 
   const fullIssue = await issuesApi.get(issue);
+  log.debug(`Full issue state: ${fullIssue.state}`);
+
   const owners = getOwners(labels, config, log);
   const body = owners.length ? formatAutomention(owners) : null;
 
