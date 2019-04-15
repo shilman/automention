@@ -30,7 +30,7 @@ Toolkit.run(async tools => {
       issue,
       labels,
       existingComments,
-      commentApi: issues,
+      issuesApi: issues,
       config,
       log
     });
