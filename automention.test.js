@@ -8,6 +8,19 @@ const issue = {
   number: 'number'
 };
 
+const FULL_ISSUE = {
+  OPEN: {
+    state: 'open',
+    user: { login: 'random' },
+    assignees: []
+  },
+  CLOSED: {
+    state: 'closed',
+    user: { login: 'random' },
+    assignees: []
+  }
+};
+
 describe('automention', () => {
   beforeEach(() => {
     input = {
@@ -20,7 +33,7 @@ describe('automention', () => {
       issuesApi: {
         get: jest.fn().mockReturnValue(
           Promise.resolve({
-            data: { state: 'open' }
+            data: FULL_ISSUE.OPEN
           })
         ),
         createComment: jest.fn(),
@@ -36,13 +49,32 @@ describe('automention', () => {
     };
   });
 
-  fit('handles multiple labels, uniquifying users and sorting them', async () => {
+  it('handles multiple labels, uniquifying users and sorting them', async () => {
     input.labels = ['bug', 'whatever', 'feature'];
     input.existingComments = [];
     await automention(input);
     expect(input.issuesApi.createComment).toHaveBeenCalledWith({
       ...issue,
       body: `Automention: Hey @igor-dv @ndelangen @shilman @tmeasday, you've been tagged! Can you give a hand here?`
+    });
+  });
+
+  it('excludes issue author and assignees from automention', async () => {
+    input.labels = ['bug', 'whatever', 'feature'];
+    input.existingComments = [];
+    input.issuesApi.get.mockReturnValue(
+      Promise.resolve({
+        data: {
+          state: 'open',
+          user: { login: 'shilman' },
+          assignees: [{ login: 'igor-dv' }]
+        }
+      })
+    ),
+      await automention(input);
+    expect(input.issuesApi.createComment).toHaveBeenCalledWith({
+      ...issue,
+      body: `Automention: Hey @ndelangen @tmeasday, you've been tagged! Can you give a hand here?`
     });
   });
 
@@ -77,7 +109,7 @@ describe('automention', () => {
       input.labels = ['bug'];
       input.issuesApi.get.mockReturnValue(
         Promise.resolve({
-          data: { state: 'closed' }
+          data: FULL_ISSUE.CLOSED
         })
       );
       await automention(input);
@@ -132,7 +164,7 @@ describe('automention', () => {
       input.labels = ['bug'];
       input.issuesApi.get.mockReturnValue(
         Promise.resolve({
-          data: { state: 'closed' }
+          data: FULL_ISSUE.CLOSED
         })
       );
       await automention(input);
