@@ -32,9 +32,10 @@ async function automention({
 
   const fullIssue = (await issuesApi.get(issue)).data;
   log.debug(`Full issue state: ${fullIssue.state}`);
-  const skipNotify = [fullIssue.user, ...fullIssue.assignees].map(
-    user => user.login
-  );
+  const skipNotify = [];
+  // [fullIssue.user, ...fullIssue.assignees].map(
+  //   user => user.login
+  // );
 
   const users = usersToNotify(labels, config, skipNotify, log);
   const body = users.length ? formatAutomention(users) : null;
