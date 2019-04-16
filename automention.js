@@ -28,7 +28,7 @@ async function automention({
     throw new Error(`Unexpected multiple automention comments: ${ids}`);
   }
 
-  const fullIssue = await issuesApi.get(issue);
+  const fullIssue = (await issuesApi.get(issue)).data;
   log.debug(`Full issue state: ${fullIssue.state}`);
 
   const owners = getOwners(labels, config, log);

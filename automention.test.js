@@ -20,7 +20,7 @@ describe('automention', () => {
       issuesApi: {
         get: jest.fn().mockReturnValue(
           Promise.resolve({
-            state: 'open'
+            data: { state: 'open' }
           })
         ),
         createComment: jest.fn(),
@@ -36,7 +36,7 @@ describe('automention', () => {
     };
   });
 
-  it('handles multiple labels, uniquifying users and sorting them', async () => {
+  fit('handles multiple labels, uniquifying users and sorting them', async () => {
     input.labels = ['bug', 'whatever', 'feature'];
     input.existingComments = [];
     await automention(input);
@@ -77,7 +77,7 @@ describe('automention', () => {
       input.labels = ['bug'];
       input.issuesApi.get.mockReturnValue(
         Promise.resolve({
-          state: 'closed'
+          data: { state: 'closed' }
         })
       );
       await automention(input);
@@ -132,7 +132,7 @@ describe('automention', () => {
       input.labels = ['bug'];
       input.issuesApi.get.mockReturnValue(
         Promise.resolve({
-          state: 'closed'
+          data: { state: 'closed' }
         })
       );
       await automention(input);
