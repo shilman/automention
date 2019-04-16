@@ -70,8 +70,8 @@ describe('automention', () => {
           assignees: [{ login: 'igor-dv' }]
         }
       })
-    ),
-      await automention(input);
+    );
+    await automention(input);
     expect(input.issuesApi.createComment).toHaveBeenCalledWith({
       ...issue,
       body: `Automention: Hey @ndelangen @tmeasday, you've been tagged! Can you give a hand here?`

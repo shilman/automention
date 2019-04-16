@@ -2,16 +2,16 @@ const { isAutomention, formatAutomention } = require('./comments');
 
 function usersToNotify(issueLabels, labelToUsers, skipNotify, log) {
   log.info('Getting users to notify', issueLabels, labelToUsers, skipNotify);
-  const uniqueOwners = new Set();
+  const uniqueUsers = new Set();
   issueLabels.forEach(label => {
     const users = labelToUsers[label];
     if (users) {
       users.forEach(
-        user => !skipNotify.includes(user) && uniqueOwners.add(user)
+        user => !skipNotify.includes(user) && uniqueUsers.add(user)
       );
     }
   });
-  return Array.from(uniqueOwners).sort();
+  return Array.from(uniqueUsers).sort();
 }
 
 async function automention({
@@ -32,10 +32,9 @@ async function automention({
 
   const fullIssue = (await issuesApi.get(issue)).data;
   log.debug(`Full issue state: ${fullIssue.state}`);
-  const skipNotify = [];
-  // [fullIssue.user, ...fullIssue.assignees].map(
-  //   user => user.login
-  // );
+  const skipNotify = [fullIssue.user, ...fullIssue.assignees].map(
+    user => user.login
+  );
 
   const users = usersToNotify(labels, config, skipNotify, log);
   const body = users.length ? formatAutomention(users) : null;
