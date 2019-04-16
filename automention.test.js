@@ -17,7 +17,12 @@ describe('automention', () => {
         feature: ['ndelangen', 'tmeasday'],
         whatever: ['shilman', 'igor-dv']
       },
-      commentApi: {
+      issuesApi: {
+        get: jest.fn().mockReturnValue(
+          Promise.resolve({
+            data: { state: 'open' }
+          })
+        ),
         createComment: jest.fn(),
         updateComment: jest.fn(),
         deleteComment: jest.fn()
@@ -31,11 +36,11 @@ describe('automention', () => {
     };
   });
 
-  it('handles multiple labels, uniquifying users and sorting them', async () => {
+  fit('handles multiple labels, uniquifying users and sorting them', async () => {
     input.labels = ['bug', 'whatever', 'feature'];
     input.existingComments = [];
     await automention(input);
-    expect(input.commentApi.createComment).toHaveBeenCalledWith({
+    expect(input.issuesApi.createComment).toHaveBeenCalledWith({
       ...issue,
       body: `Automention: Hey @igor-dv @ndelangen @shilman @tmeasday, you've been tagged! Can you give a hand here?`
     });
@@ -54,7 +59,7 @@ describe('automention', () => {
     it('creates a comment when there are matching labels', async () => {
       input.labels = ['bug'];
       await automention(input);
-      expect(input.commentApi.createComment).toHaveBeenCalledWith({
+      expect(input.issuesApi.createComment).toHaveBeenCalledWith({
         ...issue,
         body: `Automention: Hey @shilman, you've been tagged! Can you give a hand here?`
       });
@@ -63,9 +68,22 @@ describe('automention', () => {
     it('does nothing when there are no matching labels', async () => {
       input.labels = [];
       await automention(input);
-      expect(input.commentApi.createComment).not.toHaveBeenCalled();
-      expect(input.commentApi.updateComment).not.toHaveBeenCalled();
-      expect(input.commentApi.deleteComment).not.toHaveBeenCalled();
+      expect(input.issuesApi.createComment).not.toHaveBeenCalled();
+      expect(input.issuesApi.updateComment).not.toHaveBeenCalled();
+      expect(input.issuesApi.deleteComment).not.toHaveBeenCalled();
+    });
+
+    it('does nothing when the issue is closed', async () => {
+      input.labels = ['bug'];
+      input.issuesApi.get.mockReturnValue(
+        Promise.resolve({
+          data: { state: 'closed' }
+        })
+      );
+      await automention(input);
+      expect(input.issuesApi.createComment).not.toHaveBeenCalled();
+      expect(input.issuesApi.updateComment).not.toHaveBeenCalled();
+      expect(input.issuesApi.deleteComment).not.toHaveBeenCalled();
     });
   });
 
@@ -86,15 +104,15 @@ describe('automention', () => {
     it('does nothing when there are no changes', async () => {
       input.labels = ['bug'];
       await automention(input);
-      expect(input.commentApi.createComment).not.toHaveBeenCalled();
-      expect(input.commentApi.updateComment).not.toHaveBeenCalled();
-      expect(input.commentApi.deleteComment).not.toHaveBeenCalled();
+      expect(input.issuesApi.createComment).not.toHaveBeenCalled();
+      expect(input.issuesApi.updateComment).not.toHaveBeenCalled();
+      expect(input.issuesApi.deleteComment).not.toHaveBeenCalled();
     });
 
     it('updates an existing comment when there are changes', async () => {
       input.labels = ['feature'];
       await automention(input);
-      expect(input.commentApi.updateComment).toHaveBeenCalledWith({
+      expect(input.issuesApi.updateComment).toHaveBeenCalledWith({
         ...issue,
         comment_id: 'existingId',
         body: `Automention: Hey @ndelangen @tmeasday, you've been tagged! Can you give a hand here?`
@@ -104,7 +122,23 @@ describe('automention', () => {
     it('deletes an existing comment when there are no matching users', async () => {
       input.labels = [];
       await automention(input);
-      expect(input.commentApi.deleteComment).toHaveBeenCalledWith({
+      expect(input.issuesApi.deleteComment).toHaveBeenCalledWith({
+        ...issue,
+        comment_id: 'existingId'
+      });
+    });
+
+    it('deletes an existing comment when the issue is closed', async () => {
+      input.labels = ['bug'];
+      input.issuesApi.get.mockReturnValue(
+        Promise.resolve({
+          data: { state: 'closed' }
+        })
+      );
+      await automention(input);
+      expect(input.issuesApi.createComment).not.toHaveBeenCalled();
+      expect(input.issuesApi.updateComment).not.toHaveBeenCalled();
+      expect(input.issuesApi.deleteComment).toHaveBeenCalledWith({
         ...issue,
         comment_id: 'existingId'
       });
