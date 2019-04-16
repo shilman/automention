@@ -1,15 +1,17 @@
 const { isAutomention, formatAutomention } = require('./comments');
 
-function getOwners(issueLabels, labelToOwners, log) {
-  log.info('Getting unique owners', issueLabels, labelToOwners);
-  const uniqueOwners = new Set();
+function usersToNotify(issueLabels, labelToUsers, skipNotify, log) {
+  log.info('Getting users to notify', issueLabels, labelToUsers, skipNotify);
+  const uniqueUsers = new Set();
   issueLabels.forEach(label => {
-    const owners = labelToOwners[label];
-    if (owners) {
-      owners.forEach(owner => uniqueOwners.add(owner));
+    const users = labelToUsers[label];
+    if (users) {
+      users.forEach(
+        user => !skipNotify.includes(user) && uniqueUsers.add(user)
+      );
     }
   });
-  return Array.from(uniqueOwners).sort();
+  return Array.from(uniqueUsers).sort();
 }
 
 async function automention({
@@ -30,9 +32,12 @@ async function automention({
 
   const fullIssue = (await issuesApi.get(issue)).data;
   log.debug(`Full issue state: ${fullIssue.state}`);
+  const skipNotify = [fullIssue.user, ...fullIssue.assignees].map(
+    user => user.login
+  );
 
-  const owners = getOwners(labels, config, log);
-  const body = owners.length ? formatAutomention(owners) : null;
+  const users = usersToNotify(labels, config, skipNotify, log);
+  const body = users.length ? formatAutomention(users) : null;
 
   if (!automentionComments.length) {
     log.debug('No automention comments');
