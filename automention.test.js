@@ -25,17 +25,13 @@ describe('automention', () => {
   beforeEach(() => {
     input = {
       issue,
+      fullIssue: FULL_ISSUE.OPEN,
       config: {
         bug: ['shilman'],
         feature: ['ndelangen', 'tmeasday'],
         whatever: ['shilman', 'igor-dv']
       },
       issuesApi: {
-        get: jest.fn().mockReturnValue(
-          Promise.resolve({
-            data: FULL_ISSUE.OPEN
-          })
-        ),
         createComment: jest.fn(),
         updateComment: jest.fn(),
         deleteComment: jest.fn()
@@ -51,7 +47,7 @@ describe('automention', () => {
 
   it('handles multiple labels, uniquifying users and sorting them', async () => {
     input.labels = ['bug', 'whatever', 'feature'];
-    input.existingComments = [];
+    input.issueComments = [];
     await automention(input);
     expect(input.issuesApi.createComment).toHaveBeenCalledWith({
       ...issue,
@@ -59,31 +55,13 @@ describe('automention', () => {
     });
   });
 
-  it('excludes issue author and assignees from automention', async () => {
-    input.labels = ['bug', 'whatever', 'feature'];
-    input.existingComments = [];
-    input.issuesApi.get.mockReturnValue(
-      Promise.resolve({
-        data: {
-          state: 'open',
-          user: { login: 'shilman' },
-          assignees: [{ login: 'igor-dv' }]
-        }
-      })
-    );
-    await automention(input);
-    expect(input.issuesApi.createComment).toHaveBeenCalledWith({
-      ...issue,
-      body: `Automention: Hey @ndelangen @tmeasday, you've been tagged! Can you give a hand here?`
-    });
-  });
-
   describe('no automention comments', () => {
     beforeEach(() => {
-      input.existingComments = [
+      input.issueComments = [
         {
           id: 'otherId',
-          body: `Some random non-automention comment`
+          body: 'Some random non-automention comment',
+          user: { login: 'igor-dv' }
         }
       ];
     });
@@ -107,11 +85,7 @@ describe('automention', () => {
 
     it('does nothing when the issue is closed', async () => {
       input.labels = ['bug'];
-      input.issuesApi.get.mockReturnValue(
-        Promise.resolve({
-          data: FULL_ISSUE.CLOSED
-        })
-      );
+      input.fullIssue = FULL_ISSUE.CLOSED;
       await automention(input);
       expect(input.issuesApi.createComment).not.toHaveBeenCalled();
       expect(input.issuesApi.updateComment).not.toHaveBeenCalled();
@@ -121,14 +95,16 @@ describe('automention', () => {
 
   describe('pre-existing automention comments', () => {
     beforeEach(() => {
-      input.existingComments = [
+      input.issueComments = [
         {
           id: 'otherId',
-          body: `Some random non-automention comment`
+          body: `Some random non-automention comment`,
+          user: { login: 'whatever' }
         },
         {
           id: 'existingId',
-          body: `Automention: Hey @shilman, you've been tagged! Can you give a hand here?`
+          body: `Automention: Hey @shilman, you've been tagged! Can you give a hand here?`,
+          user: { login: 'github-actions' }
         }
       ];
     });
@@ -162,11 +138,7 @@ describe('automention', () => {
 
     it('deletes an existing comment when the issue is closed', async () => {
       input.labels = ['bug'];
-      input.issuesApi.get.mockReturnValue(
-        Promise.resolve({
-          data: FULL_ISSUE.CLOSED
-        })
-      );
+      input.fullIssue = FULL_ISSUE.CLOSED;
       await automention(input);
       expect(input.issuesApi.createComment).not.toHaveBeenCalled();
       expect(input.issuesApi.updateComment).not.toHaveBeenCalled();

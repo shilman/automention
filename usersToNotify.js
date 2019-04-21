@@ -1,0 +1,14 @@
+function usersToNotify({ matchingUsers, fullIssue, issueComments, log }) {
+  if (fullIssue.state === 'closed' || fullIssue.assignees.length > 0) {
+    return [];
+  }
+
+  const skipUsers = new Set(issueComments.map(c => c.user.login));
+  skipUsers.add(fullIssue.user.login);
+  const uniqueUsers = new Set(matchingUsers.filter(u => !skipUsers.has(u)));
+  return Array.from(uniqueUsers).sort();
+}
+
+module.exports = {
+  usersToNotify
+};

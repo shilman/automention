@@ -16,20 +16,23 @@ Toolkit.run(async tools => {
       throw new Error('No automention.yml');
     }
 
+    const fullIssue = (await issues.get(issue)).data;
+
     const labels = (await issues.listLabelsOnIssue(issue)).data.map(
       l => l.name
     );
 
     // FIXME: support pagination
-    const existingComments = (await issues.listComments({
+    const issueComments = (await issues.listComments({
       ...issue,
       per_page: 100
     })).data;
 
     await automention({
       issue,
+      fullIssue,
       labels,
-      existingComments,
+      issueComments,
       issuesApi: issues,
       config,
       log
