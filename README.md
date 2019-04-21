@@ -72,6 +72,14 @@ label2: ['user1']
 
 If a PR or issue is labeled with more than one label, `Automention` will mention the _union_ of all users, sorted alphabetically.
 
+## Heuristics
+
+`Automention` has a few heuristics (which might be turned into configuration options in the future):
+
+- Don't comment on closed issues
+- Don't comment on assigned issues
+- Don't automention issue author or commenters
+
 ## Credits
 
 - Inspired by [Storybook](https://github.com/storybooks/storybook)

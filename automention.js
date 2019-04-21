@@ -1,50 +1,37 @@
 const { isAutomention, formatAutomention } = require('./comments');
-
-function usersToNotify(issueLabels, labelToUsers, skipNotify, log) {
-  log.info('Getting users to notify', issueLabels, labelToUsers, skipNotify);
-  const uniqueUsers = new Set();
-  issueLabels.forEach(label => {
-    const users = labelToUsers[label];
-    if (users) {
-      users.forEach(
-        user => !skipNotify.includes(user) && uniqueUsers.add(user)
-      );
-    }
-  });
-  return Array.from(uniqueUsers).sort();
-}
+const { usersToNotify } = require('./usersToNotify');
 
 async function automention({
   issue,
+  fullIssue,
   labels,
-  existingComments,
+  issueComments,
   issuesApi,
   config,
   log
 }) {
-  const automentionComments = existingComments.filter(c =>
-    isAutomention(c.body)
-  );
+  const automentionComments = issueComments.filter(c => isAutomention(c.body));
   if (automentionComments.length > 1) {
     const ids = automentionComments.map(c => c.id).join(' ');
     throw new Error(`Unexpected multiple automention comments: ${ids}`);
   }
 
-  const fullIssue = (await issuesApi.get(issue)).data;
-  log.debug(`Full issue state: ${fullIssue.state}`);
-  const skipNotify = [fullIssue.user, ...fullIssue.assignees].map(
-    user => user.login
-  );
+  const matchingUsers = [];
+  const labelToUsers = config;
+  labels.forEach(label => {
+    const users = labelToUsers[label];
+    if (users) {
+      users.forEach(u => matchingUsers.push(u));
+    }
+  });
 
-  const users = usersToNotify(labels, config, skipNotify, log);
+  const users = usersToNotify({ matchingUsers, fullIssue, issueComments });
   const body = users.length ? formatAutomention(users) : null;
 
   if (!automentionComments.length) {
     log.debug('No automention comments');
     if (!body) {
-      log.info('No comments, no users to notify');
-    } else if (fullIssue.state === 'closed') {
-      log.info('Skipping closed issue');
+      log.info('No users to notify');
     } else {
       log.info(`Creating comment: '${body}'`);
       await issuesApi.createComment({
@@ -54,7 +41,7 @@ async function automention({
     }
   } else {
     const existing = automentionComments[0];
-    if (!body || fullIssue.state === 'closed') {
+    if (!body) {
       log.info('Removing automention comment');
       await issuesApi.deleteComment({ ...issue, comment_id: existing.id });
     } else if (existing.body === body) {
