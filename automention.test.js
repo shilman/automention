@@ -148,4 +148,35 @@ describe('automention', () => {
       });
     });
   });
+
+  describe('multiple existing automention comments', () => {
+    beforeEach(() => {
+      input.issueComments = [
+        {
+          id: 'existingId',
+          body: `Automention: Hey @shilman, you've been tagged! Can you give a hand here?`,
+          user: { login: 'github-actions' }
+        },
+        {
+          id: 'duplicateId',
+          body: `Automention: Hey @shilman @igor-dv, you've been tagged! Can you give a hand here?`,
+          user: { login: 'github-actions' }
+        }
+      ];
+    });
+    it('updates first comment and deletes duplicate comments', async () => {
+      input.labels = ['feature'];
+      await automention(input);
+      expect(input.issuesApi.createComment).not.toHaveBeenCalled();
+      expect(input.issuesApi.updateComment).toHaveBeenCalledWith({
+        ...issue,
+        comment_id: 'existingId',
+        body: `Automention: Hey @ndelangen @tmeasday, you've been tagged! Can you give a hand here?`
+      });
+      expect(input.issuesApi.deleteComment).toHaveBeenCalledWith({
+        ...issue,
+        comment_id: 'duplicateId'
+      });
+    });
+  });
 });

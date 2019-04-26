@@ -10,12 +10,6 @@ async function automention({
   config,
   log
 }) {
-  const automentionComments = issueComments.filter(c => isAutomention(c.body));
-  if (automentionComments.length > 1) {
-    const ids = automentionComments.map(c => c.id).join(' ');
-    throw new Error(`Unexpected multiple automention comments: ${ids}`);
-  }
-
   const matchingUsers = [];
   const labelToUsers = config;
   labels.forEach(label => {
@@ -28,7 +22,10 @@ async function automention({
   const users = usersToNotify({ matchingUsers, fullIssue, issueComments });
   const body = users.length ? formatAutomention(users) : null;
 
-  if (!automentionComments.length) {
+  const automentionComments = issueComments.filter(c => isAutomention(c.body));
+  const [existingComment, ...duplicateComments] = automentionComments;
+
+  if (!existingComment) {
     log.debug('No automention comments');
     if (!body) {
       log.info('No users to notify');
@@ -43,17 +40,30 @@ async function automention({
     const existing = automentionComments[0];
     if (!body) {
       log.info('Removing automention comment');
-      await issuesApi.deleteComment({ ...issue, comment_id: existing.id });
+      await issuesApi.deleteComment({
+        ...issue,
+        comment_id: existingComment.id
+      });
     } else if (existing.body === body) {
       log.info('Nothing to update');
     } else {
       await issuesApi.updateComment({
         ...issue,
-        comment_id: existing.id,
+        comment_id: existingComment.id,
         body
       });
     }
   }
+
+  await Promise.all(
+    duplicateComments.map(async dupe => {
+      log.warn(`Removing duplicate comment: ${dupe.id}`);
+      await issuesApi.deleteComment({
+        ...issue,
+        comment_id: dupe.id
+      });
+    })
+  );
 }
 
 module.exports = {
