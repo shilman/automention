@@ -4,7 +4,7 @@ const { automention } = require('./automention');
 Toolkit.run(async tools => {
   const {
     github: { issues },
-    context: { issue },
+    context: { issue: contextIssue },
     log,
     exit
   } = tools;
@@ -16,6 +16,8 @@ Toolkit.run(async tools => {
       throw new Error('No automention.yml');
     }
 
+    const { number, owner, repo } = contextIssue;
+    const issue = { issue_number: number, owner, repo };
     const fullIssue = (await issues.get(issue)).data;
 
     const labels = (await issues.listLabelsOnIssue(issue)).data.map(
