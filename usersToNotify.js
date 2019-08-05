@@ -1,5 +1,9 @@
 function usersToNotify({ matchingUsers, fullIssue, issueComments, log }) {
-  if (fullIssue.state === 'closed' || fullIssue.assignees.length > 0) {
+  if (
+    fullIssue.state === 'closed' ||
+    fullIssue.assignees.length > 0 ||
+    fullIssue.draft
+  ) {
     return [];
   }
 

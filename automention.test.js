@@ -18,6 +18,12 @@ const FULL_ISSUE = {
     state: 'closed',
     user: { login: 'random' },
     assignees: []
+  },
+  DRAFT: {
+    state: 'open',
+    draft: true,
+    user: { login: 'random' },
+    assignees: []
   }
 };
 
@@ -86,6 +92,15 @@ describe('automention', () => {
     it('does nothing when the issue is closed', async () => {
       input.labels = ['bug'];
       input.fullIssue = FULL_ISSUE.CLOSED;
+      await automention(input);
+      expect(input.issuesApi.createComment).not.toHaveBeenCalled();
+      expect(input.issuesApi.updateComment).not.toHaveBeenCalled();
+      expect(input.issuesApi.deleteComment).not.toHaveBeenCalled();
+    });
+
+    it('does nothing when the issue is in draft mode', async () => {
+      input.labels = ['bug'];
+      input.fullIssue = FULL_ISSUE.DRAFT;
       await automention(input);
       expect(input.issuesApi.createComment).not.toHaveBeenCalled();
       expect(input.issuesApi.updateComment).not.toHaveBeenCalled();

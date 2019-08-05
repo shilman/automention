@@ -16,6 +16,15 @@ describe('notification', () => {
       })
     ).toEqual([]);
   });
+  it("should notify nobody when the it's a draft PR", () => {
+    expect(
+      usersToNotify({
+        matchingUsers: ['shilman'],
+        fullIssue: { ...issue, draft: true },
+        issueComments: []
+      })
+    ).toEqual([]);
+  });
   it('should notify nobody when the issue is assigned', () => {
     expect(
       usersToNotify({
