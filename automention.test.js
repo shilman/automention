@@ -52,7 +52,7 @@ describe('automention', () => {
   });
 
   it('handles multiple labels, uniquifying users and sorting them', async () => {
-    input.labels = ['bug', 'whatever', 'feature'];
+    input.labels = ['help wanted', 'bug', 'whatever', 'feature'];
     input.issueComments = [];
     await automention(input);
     expect(input.issuesApi.createComment).toHaveBeenCalledWith({
@@ -73,7 +73,7 @@ describe('automention', () => {
     });
 
     it('creates a comment when there are matching labels', async () => {
-      input.labels = ['bug'];
+      input.labels = ['help wanted', 'bug'];
       await automention(input);
       expect(input.issuesApi.createComment).toHaveBeenCalledWith({
         ...issue,
@@ -82,7 +82,15 @@ describe('automention', () => {
     });
 
     it('does nothing when there are no matching labels', async () => {
-      input.labels = [];
+      input.labels = ['help wanted'];
+      await automention(input);
+      expect(input.issuesApi.createComment).not.toHaveBeenCalled();
+      expect(input.issuesApi.updateComment).not.toHaveBeenCalled();
+      expect(input.issuesApi.deleteComment).not.toHaveBeenCalled();
+    });
+
+    it('does nothing when there is no `help wanted` label', async () => {
+      input.labels = ['bug'];
       await automention(input);
       expect(input.issuesApi.createComment).not.toHaveBeenCalled();
       expect(input.issuesApi.updateComment).not.toHaveBeenCalled();
@@ -90,7 +98,7 @@ describe('automention', () => {
     });
 
     it('does nothing when the issue is closed', async () => {
-      input.labels = ['bug'];
+      input.labels = ['help wanted', 'bug'];
       input.fullIssue = FULL_ISSUE.CLOSED;
       await automention(input);
       expect(input.issuesApi.createComment).not.toHaveBeenCalled();
@@ -99,7 +107,7 @@ describe('automention', () => {
     });
 
     it('does nothing when the issue is in draft mode', async () => {
-      input.labels = ['bug'];
+      input.labels = ['help wanted', 'bug'];
       input.fullIssue = FULL_ISSUE.DRAFT;
       await automention(input);
       expect(input.issuesApi.createComment).not.toHaveBeenCalled();
@@ -125,7 +133,7 @@ describe('automention', () => {
     });
 
     it('does nothing when there are no changes', async () => {
-      input.labels = ['bug'];
+      input.labels = ['help wanted', 'bug'];
       await automention(input);
       expect(input.issuesApi.createComment).not.toHaveBeenCalled();
       expect(input.issuesApi.updateComment).not.toHaveBeenCalled();
@@ -133,7 +141,7 @@ describe('automention', () => {
     });
 
     it('updates an existing comment when there are changes', async () => {
-      input.labels = ['feature'];
+      input.labels = ['help wanted', 'feature'];
       await automention(input);
       expect(input.issuesApi.updateComment).toHaveBeenCalledWith({
         ...issue,
@@ -152,7 +160,7 @@ describe('automention', () => {
     });
 
     it('deletes an existing comment when the issue is closed', async () => {
-      input.labels = ['bug'];
+      input.labels = ['help wanted', 'bug'];
       input.fullIssue = FULL_ISSUE.CLOSED;
       await automention(input);
       expect(input.issuesApi.createComment).not.toHaveBeenCalled();
@@ -180,7 +188,7 @@ describe('automention', () => {
       ];
     });
     it('updates first comment and deletes duplicate comments', async () => {
-      input.labels = ['feature'];
+      input.labels = ['help wanted', 'feature'];
       await automention(input);
       expect(input.issuesApi.createComment).not.toHaveBeenCalled();
       expect(input.issuesApi.updateComment).toHaveBeenCalledWith({

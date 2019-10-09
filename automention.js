@@ -19,7 +19,9 @@ async function automention({
     }
   });
 
-  const users = usersToNotify({ matchingUsers, fullIssue, issueComments });
+  const users = labels.includes('help wanted')
+    ? usersToNotify({ matchingUsers, fullIssue, issueComments })
+    : [];
   const body = users.length ? formatAutomention(users) : null;
 
   const automentionComments = issueComments.filter(c => isAutomention(c.body));
