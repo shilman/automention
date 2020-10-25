@@ -6,7 +6,7 @@
     "test": "jest"
   },
   "dependencies": {
-    "actions-toolkit": "^6.0.1"
+    "actions-toolkit": "^2.1.0"
   },
   "devDependencies": {
     "jest": "^24.8.0",
